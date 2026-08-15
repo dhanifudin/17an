@@ -568,9 +568,9 @@
     { start:"19.05", end:"19.10", title:"Pembacaan Sari Tilawah", pic:"Haydar & Mahirah" },
     { start:"19.10", end:"19.20", title:"Indonesia Raya & Hari Merdeka", pic:"Dirijen Tante Galuh, Paduan Suara PKK & Warga", videos:[
       { src:"assets/indonesia-raya.mp4", label:"Indonesia Raya" },
-      { src:"assets/hari-merdeka.mp4",   label:"Hari Merdeka" }
+      { src:"assets/hari-merdeka.mp4",   label:"Hari Merdeka", end:128 }
     ]},
-    { start:"19.20", end:"19.30", title:"Sambutan", pic:"P. RT & P. Bayu" },
+    { start:"19.20", end:"19.30", title:"Sambutan", pic:"P. RT" },
     { start:"19.30", end:"19.35", title:"Doa", pic:"Ustadz Habib" },
     { start:"19.35", end:"19.40", title:"Refleksi Sejarah", pic:"P. Alex", video:"assets/mengheningkan-cipta.mp4", videoLabel:"Mengheningkan Cipta (OST)", embed:true, videoLoop:true },
     { start:"19.40", end:"19.45", title:"Pemotongan Tumpeng", pic:"P. RT" },
@@ -810,7 +810,7 @@
             else { songPlayer.pause(); }
           } else {
             currentSongIdx = ti;
-            songPlayer.src = track.src;
+            songPlayer.src = track.src + (track.end ? '#t=,' + track.end : '');
             songPlayer.style.display = "block";
             songPlayer.play().catch(function(){});
           }
