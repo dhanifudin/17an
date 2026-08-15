@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rundown 17 Agustus — Panel Operator</title>
+<style>
+  :root{
+    --bg:#0B0F14;
+    --bg-elev:#12181F;
+    --bg-elev-2:#1A222B;
+    --text:#F3EFE4;
+    --text-dim:#8B93A0;
+    --red:#C1272D;
+    --red-dim:#5C1418;
+    --gold:#D4A017;
+    --gold-glow:rgba(212,160,23,.35);
+    --green-done:#5C7A52;
+    --border:#242C36;
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    overflow:hidden;
+  }
+
+  :focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+
+  .app{
+    display:grid;
+    grid-template-rows:auto 1fr;
+    height:100vh;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, var(--bg-elev), var(--bg));
+  }
+  .topbar .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .topbar .brand .flag-mark{
+    display:inline-block;
+    width:20px;
+    height:14px;
+    border-radius:1px;
+    background:linear-gradient(to bottom, var(--red) 50%, var(--text) 50%);
+    box-shadow:0 0 0 1px var(--border);
+  }
+  .topbar h1{
+    font-family:var(--font-display);
+    font-size:1.05rem;
+    font-weight:700;
+    letter-spacing:.02em;
+    margin:0;
+    color:var(--text);
+  }
+  .topbar .sub{
+    font-size:.72rem;
+    color:var(--text-dim);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .clock{
+    font-family:var(--font-mono);
+    font-size:2rem;
+    font-weight:600;
+    letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .status-pill{
+    font-family:var(--font-ui);
+    font-size:.78rem;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--bg-elev-2);
+    color:var(--text-dim);
+  }
+  .status-pill[data-state="ontime"]{ color:#9CC48A; border-color:#3A4A34; }
+  .status-pill[data-state="ahead"]{ color:#8FB6D9; border-color:#2E4152; }
+  .status-pill[data-state="behind"]{ color:#E0917E; border-color:#5C2B24; }
+
+  .reset-btn{
+    font-family:var(--font-ui);
+    font-size:.72rem;
+    color:var(--text-dim);
+    background:none;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+  .reset-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+
+  /* ---------- layout ---------- */
+  .main{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    min-height:0;
+  }
+
+  /* ---------- sidebar / flagpole rail ---------- */
+  .sidebar{
+    display:grid;
+    grid-template-columns:34px 1fr;
+    border-right:1px solid var(--border);
+    overflow-y:auto;
+    padding:20px 0 20px 14px;
+    background:var(--bg-elev);
+  }
+
+  .rail{
+    position:relative;
+    display:flex;
+    justify-content:center;
+  }
+  .rail-pole{
+    position:absolute;
+    top:6px;
+    bottom:6px;
+    width:2px;
+    background:var(--border);
+  }
+  .rail-fill{
+    position:absolute;
+    bottom:6px;
+    width:2px;
+    background:linear-gradient(to top, var(--red), var(--gold));
+    transition:height .6s ease;
+  }
+  @media (prefers-reduced-motion:reduce){ .rail-fill{ transition:none; } }
+  .rail-flag{
+    position:absolute;
+    width:18px;
+    height:13px;
+    left:50%;
+    transform:translateX(calc(-50% + 1px));
+    background:linear-gradient(to bottom, var(--red) 50%, var(--text) 50%);
+    box-shadow:0 1px 4px rgba(0,0,0,.6);
+    transition:bottom .6s ease;
+  }
+  @media (prefers-reduced-motion:reduce){ .rail-flag{ transition:none; } }
+
+  .segments{
+    list-style:none;
+    margin:0;
+    padding:0 12px 0 0;
+    display:flex;
+    flex-direction:column;
+  }
+  .segment{
+    display:grid;
+    grid-template-columns:1.6rem 1fr;
+    gap:8px;
+    padding:11px 10px;
+    margin-bottom:2px;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid transparent;
+    background:none;
+    text-align:left;
+    color:var(--text);
+    font-family:inherit;
+    width:100%;
+  }
+  .segment:hover{ background:var(--bg-elev-2); }
+  .segment .num{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    color:var(--text-dim);
+    padding-top:2px;
+  }
+  .segment .title{
+    font-size:.86rem;
+    font-weight:600;
+    line-height:1.3;
+  }
+  .segment .time{
+    font-family:var(--font-mono);
+    font-size:.7rem;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+  .segment .pic{
+    font-size:.7rem;
+    color:var(--text-dim);
+    margin-top:2px;
+    font-style:italic;
+  }
+
+  .segment.done{ opacity:.45; }
+  .segment.done .num::before{ content:"✓ "; color:var(--green-done); }
+  .segment.active{
+    background:var(--bg-elev-2);
+    border-color:var(--gold-glow);
+    box-shadow:0 0 0 1px var(--gold-glow), 0 0 22px -8px var(--gold-glow);
+  }
+  .segment.active .num{ color:var(--gold); }
+  .segment.active .title{ color:#FFF6DE; }
+
+  /* ---------- stage ---------- */
+  .stage{
+    display:flex;
+    flex-direction:column;
+    padding:36px 44px;
+    overflow-y:auto;
+    min-height:0;
+  }
+  .stage .eyebrow{
+    font-size:.76rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .stage h2{
+    font-family:var(--font-display);
+    font-size:clamp(1.9rem, 4vw, 3.2rem);
+    line-height:1.12;
+    margin:0 0 14px;
+    font-weight:700;
+  }
+  .stage .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:22px;
+    margin-bottom:28px;
+    padding-bottom:26px;
+    border-bottom:1px solid var(--border);
+  }
+  .meta-item .label{
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--text-dim);
+    margin-bottom:4px;
+  }
+  .meta-item .value{
+    font-size:1.05rem;
+    font-weight:600;
+    font-family:var(--font-mono);
+  }
+  .meta-item .value.pic-value{ font-family:var(--font-ui); font-weight:500; }
+
+  .timer-block{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:30px;
+  }
+  .timer-block .big-timer{
+    font-family:var(--font-mono);
+    font-size:clamp(2.4rem, 6vw, 4.4rem);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    color:var(--gold);
+  }
+  .timer-block .timer-label{
+    font-size:.82rem;
+    color:var(--text-dim);
+  }
+
+  .video-block{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    margin-bottom:28px;
+  }
+  .video-block .video-title{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .video-block .video-name{
+    font-size:.92rem;
+    margin-bottom:16px;
+    color:var(--text);
+  }
+  .video-block .video-actions{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .play-btn{
+    font-family:var(--font-ui);
+    font-size:.9rem;
+    font-weight:700;
+    color:#161006;
+    background:linear-gradient(180deg, #E7BB3A, var(--gold));
+    border:none;
+    border-radius:8px;
+    padding:11px 20px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .play-btn:hover{ filter:brightness(1.08); }
+  .play-btn::before{ content:"▶"; font-size:.75rem; }
+
+  .pick-link{
+    font-size:.78rem;
+    color:var(--text-dim);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .pick-link:hover{ color:var(--text); }
+
+  .controls{
+    margin-top:auto;
+    display:flex;
+    gap:12px;
+    padding-top:24px;
+  }
+  .nav-btn{
+    font-family:var(--font-ui);
+    font-size:.88rem;
+    font-weight:600;
+    padding:12px 22px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--bg-elev);
+    color:var(--text);
+    cursor:pointer;
+  }
+  .nav-btn:hover:not(:disabled){ border-color:var(--text-dim); }
+  .nav-btn:disabled{ opacity:.35; cursor:default; }
+  .nav-btn.primary{
+    background:var(--red);
+    border-color:var(--red);
+    color:#FFF3EF;
+  }
+  .nav-btn.primary:hover:not(:disabled){ background:#D6353B; }
+  .hint{
+    align-self:center;
+    font-size:.7rem;
+    color:var(--text-dim);
+    margin-left:6px;
+  }
+
+  #filePicker{ display:none; }
+
+  @media (max-width:820px){
+    .main{ grid-template-columns:1fr; grid-template-rows:auto 1fr; }
+    .sidebar{ border-right:none; border-bottom:1px solid var(--border); max-height:38vh; }
+    .stage{ padding:24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="flag-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Rundown 17 Agustus</h1>
+        <div class="sub">Panel Operator</div>
+      </div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="status-pill" id="statusPill">—</div>
+      <button class="reset-btn" id="resetBtn" title="Reset seluruh progres">Reset</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <nav class="sidebar" aria-label="Daftar susunan acara">
+      <div class="rail" id="rail">
+        <div class="rail-pole"></div>
+        <div class="rail-fill" id="railFill"></div>
+        <div class="rail-flag" id="railFlag" title="Progres acara"></div>
+      </div>
+      <ol class="segments" id="segments"></ol>
+    </nav>
+
+    <main class="stage" id="stage">
+      <!-- populated by JS -->
+    </main>
+  </div>
+</div>
+
+<input type="file" id="filePicker" accept="video/*">
+<video id="stageVideo" style="display:none;"></video>
+
+<script>
+(function(){
+  "use strict";
+
+  var VIDEO_TARI = "videos/Tari Nusantara - Wonderland Indonesia 2  by Alffy Rev [WP_h6l99xHo].webm";
+  var VIDEO_LABEL = "Tari Nusantara — Wonderland Indonesia 2 (Alffy Rev)";
+
+  var RUNDOWN = [
+    { start:"19.00", end:"19.05", title:"Pembukaan oleh MC", pic:"" },
+    { start:"19.05", end:"19.10", title:"Pembacaan Sari Tilawah", pic:"Haydar & Mahirah" },
+    { start:"19.10", end:"19.20", title:"Indonesia Raya + Mengheningkan Cipta", pic:"Dirijen Tante Galuh, Paduan Suara PKK & Warga" },
+    { start:"19.20", end:"19.30", title:"Sambutan", pic:"P. RT & P. Bayu" },
+    { start:"19.30", end:"19.45", title:"Doa, Refleksi Sejarah & Pemotongan Tumpeng", pic:"P. Alex & P. RT" },
+    { start:"19.45", end:"19.55", title:"Penampilan Tari — Grup Kecil", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL, videoNote:"(contoh — ganti bila ada video khusus)" },
+    { start:"19.55", end:"20.10", title:"Penampilan Tari — Cowok", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL, videoNote:"(contoh — ganti bila ada video khusus)" },
+    { start:"20.10", end:"20.30", title:"Tari Besar", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL },
+    { start:"20.30", end:null, title:"Pengumuman Hadiah", pic:"" },
+    { start:"20.45", end:null, title:"Pensi", pic:"Tante Galuh" },
+    { start:null, end:null, title:"Makan Bersama", pic:"Semua Warga" }
+  ];
+
+  var STORAGE_KEY = "rundown17an-state-v1";
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return { activeIndex:0, actualStarts:{} };
+  }
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  var state = loadState();
+  if(typeof state.activeIndex !== "number") state.activeIndex = 0;
+  if(!state.actualStarts) state.actualStarts = {};
+
+  function timeStrToDate(str){
+    if(!str) return null;
+    var parts = str.split(".");
+    var d = new Date();
+    d.setHours(parseInt(parts[0],10), parseInt(parts[1],10), 0, 0);
+    return d;
+  }
+
+  function pad(n){ return n<10 ? "0"+n : ""+n; }
+  function fmtHMS(ms){
+    var neg = ms < 0;
+    ms = Math.abs(ms);
+    var s = Math.floor(ms/1000);
+    var h = Math.floor(s/3600);
+    var m = Math.floor((s%3600)/60);
+    var sec = s%60;
+    var out = (h>0 ? h+":" : "") + pad(m) + ":" + pad(sec);
+    return (neg ? "-" : "") + out;
+  }
+
+  // ---------- render sidebar ----------
+  var segmentsEl = document.getElementById("segments");
+  var railFill = document.getElementById("railFill");
+  var railFlag = document.getElementById("railFlag");
+
+  function renderSidebar(){
+    segmentsEl.innerHTML = "";
+    RUNDOWN.forEach(function(seg, i){
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.className = "segment";
+      if(i < state.activeIndex) btn.className += " done";
+      if(i === state.activeIndex) btn.className += " active";
+      btn.setAttribute("data-index", i);
+
+      var timeLabel = seg.start ? (seg.start + (seg.end ? "–"+seg.end : "")) : "—";
+
+      btn.innerHTML =
+        '<span class="num">'+pad(i+1)+'</span>' +
+        '<span>' +
+          '<div class="title">'+seg.title+'</div>' +
+          '<div class="time">'+timeLabel+'</div>' +
+          (seg.pic ? '<div class="pic">'+seg.pic+'</div>' : '') +
+        '</span>';
+
+      btn.addEventListener("click", function(){
+        goTo(i);
+      });
+      li.appendChild(btn);
+      segmentsEl.appendChild(li);
+    });
+
+    var pct = RUNDOWN.length > 1 ? (state.activeIndex / (RUNDOWN.length-1)) : 0;
+    pct = Math.max(0, Math.min(1, pct));
+    var railH = document.getElementById("rail").offsetHeight - 12;
+    railFill.style.height = (pct*railH) + "px";
+    railFlag.style.bottom = (6 + pct*railH - 6) + "px";
+  }
+
+  // ---------- render stage ----------
+  var stageEl = document.getElementById("stage");
+  var stageVideo = document.getElementById("stageVideo");
+  var filePicker = document.getElementById("filePicker");
+  var overrideVideoUrl = null;
+  var overrideForIndex = null;
+
+  function renderStage(){
+    var i = state.activeIndex;
+    var seg = RUNDOWN[i];
+    var isLast = i === RUNDOWN.length - 1;
+
+    var timeLabel = seg.start ? (seg.start + (seg.end ? " – "+seg.end : "")) : "—";
+
+    var html = "";
+    html += '<div class="eyebrow">Segmen '+pad(i+1)+' dari '+RUNDOWN.length+'</div>';
+    html += '<h2>'+seg.title+'</h2>';
+    html += '<div class="meta-row">';
+    html += '<div class="meta-item"><div class="label">Jadwal</div><div class="value">'+timeLabel+'</div></div>';
+    if(seg.pic){
+      html += '<div class="meta-item"><div class="label">Penanggung Jawab</div><div class="value pic-value">'+seg.pic+'</div></div>';
+    }
+    html += '</div>';
+
+    html += '<div class="timer-block">';
+    html += '<div class="big-timer" id="bigTimer">00:00</div>';
+    html += '<div class="timer-label">berjalan sejak segmen ini dimulai</div>';
+    html += '</div>';
+
+    if(seg.video){
+      html += '<div class="video-block">';
+      html += '<div class="video-title">Video</div>';
+      html += '<div class="video-name">'+(seg.videoLabel||seg.video)+(seg.videoNote ? ' <span style="color:var(--text-dim);">'+seg.videoNote+'</span>' : '')+'</div>';
+      html += '<div class="video-actions">';
+      html += '<button class="play-btn" id="playBtn">Putar Layar Penuh</button>';
+      html += '<button class="pick-link" id="pickBtn">Pilih video lain…</button>';
+      html += '</div></div>';
+    }
+
+    html += '<div class="controls">';
+    html += '<button class="nav-btn" id="prevBtn" '+(i===0?'disabled':'')+'>← Sebelumnya</button>';
+    html += '<button class="nav-btn primary" id="nextBtn" '+(isLast?'disabled':'')+'>Berikutnya →</button>';
+    html += '<span class="hint">Spasi / Panah = navigasi</span>';
+    html += '</div>';
+
+    stageEl.innerHTML = html;
+
+    document.getElementById("prevBtn").addEventListener("click", function(){ goTo(state.activeIndex-1); });
+    document.getElementById("nextBtn").addEventListener("click", function(){ goTo(state.activeIndex+1); });
+
+    if(seg.video){
+      document.getElementById("playBtn").addEventListener("click", function(){ playVideo(seg, i); });
+      document.getElementById("pickBtn").addEventListener("click", function(){ filePicker.click(); });
+    }
+  }
+
+  function playVideo(seg, i){
+    var src = (overrideForIndex === i && overrideVideoUrl) ? overrideVideoUrl : seg.video;
+    if(stageVideo.getAttribute("data-src") !== src){
+      stageVideo.src = src;
+      stageVideo.setAttribute("data-src", src);
+    }
+    stageVideo.style.display = "block";
+    if(stageVideo.requestFullscreen){
+      stageVideo.requestFullscreen().catch(function(){});
+    }
+    stageVideo.play().catch(function(){});
+  }
+
+  filePicker.addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    if(overrideVideoUrl) URL.revokeObjectURL(overrideVideoUrl);
+    overrideVideoUrl = URL.createObjectURL(file);
+    overrideForIndex = state.activeIndex;
+    var seg = RUNDOWN[state.activeIndex];
+    playVideo(seg, state.activeIndex);
+  });
+
+  document.addEventListener("fullscreenchange", function(){
+    if(!document.fullscreenElement){
+      stageVideo.pause();
+      stageVideo.style.display = "none";
+    }
+  });
+
+  // ---------- navigation ----------
+  function goTo(i){
+    if(i < 0 || i >= RUNDOWN.length) return;
+    state.activeIndex = i;
+    if(!state.actualStarts[i]){
+      state.actualStarts[i] = new Date().toISOString();
+    }
+    saveState();
+    renderSidebar();
+    renderStage();
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(confirm("Reset seluruh progres rundown? Waktu mulai aktual akan dihapus.")){
+      state = { activeIndex:0, actualStarts:{} };
+      saveState();
+      renderSidebar();
+      renderStage();
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.target.tagName === "INPUT") return;
+    if(e.code === "Space" || e.code === "ArrowRight"){
+      e.preventDefault();
+      goTo(state.activeIndex+1);
+    } else if(e.code === "ArrowLeft"){
+      e.preventDefault();
+      goTo(state.activeIndex-1);
+    }
+  });
+
+  // ---------- clock / timers / status ----------
+  var clockEl = document.getElementById("clock");
+  var statusPill = document.getElementById("statusPill");
+
+  function tick(){
+    var now = new Date();
+    clockEl.textContent = pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds());
+
+    var seg = RUNDOWN[state.activeIndex];
+    var startedIso = state.actualStarts[state.activeIndex];
+    var bigTimerEl = document.getElementById("bigTimer");
+    if(bigTimerEl && startedIso){
+      var elapsed = now - new Date(startedIso);
+      bigTimerEl.textContent = fmtHMS(elapsed);
+    }
+
+    var scheduled = timeStrToDate(seg.start);
+    if(scheduled && startedIso){
+      var actual = new Date(startedIso);
+      var diffMin = Math.round((actual - scheduled) / 60000);
+      if(Math.abs(diffMin) <= 1){
+        statusPill.textContent = "Tepat waktu";
+        statusPill.setAttribute("data-state","ontime");
+      } else if(diffMin < 0){
+        statusPill.textContent = "Lebih cepat " + Math.abs(diffMin) + " menit";
+        statusPill.setAttribute("data-state","ahead");
+      } else {
+        statusPill.textContent = "Molor " + diffMin + " menit";
+        statusPill.setAttribute("data-state","behind");
+      }
+    } else {
+      statusPill.textContent = "—";
+      statusPill.removeAttribute("data-state");
+    }
+  }
+
+  // ensure first segment has a start stamp so timer works immediately
+  if(!state.actualStarts[state.activeIndex]){
+    state.actualStarts[state.activeIndex] = new Date().toISOString();
+    saveState();
+  }
+
+  renderSidebar();
+  renderStage();
+  tick();
+  setInterval(tick, 1000);
+  window.addEventListener("resize", renderSidebar);
+
+})();
+</script>
+
+</body>
+</html>
