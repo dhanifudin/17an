@@ -22,6 +22,22 @@
     --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
   }
 
+  body.light{
+    --bg:#F5F1E8;
+    --bg-elev:#FFFFFF;
+    --bg-elev-2:#EDE8DC;
+    --text:#1D242E;
+    --text-dim:#6A7280;
+    --border:#D0CAB8;
+    --gold-glow:rgba(212,160,23,.25);
+    --green-done:#3A6B31;
+  }
+  body.light .status-pill[data-state="ontime"]{ color:#2E6B22; border-color:#A3C49A; }
+  body.light .status-pill[data-state="ahead"]{ color:#1E5280; border-color:#8AAEC9; }
+  body.light .status-pill[data-state="behind"]{ color:#8B2E22; border-color:#D0857A; }
+  body.light .segment.active .title{ color:#0D0A00; }
+  body.light .rail-flag{ box-shadow:0 1px 4px rgba(0,0,0,.2); }
+
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
@@ -41,6 +57,7 @@
     display:grid;
     grid-template-rows:auto 1fr;
     height:100vh;
+    height:100dvh;
   }
 
   /* ---------- top bar ---------- */
@@ -48,7 +65,9 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:14px 28px;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:12px 28px;
     border-bottom:1px solid var(--border);
     background:linear-gradient(180deg, var(--bg-elev), var(--bg));
   }
@@ -81,10 +100,16 @@
   }
   .clock{
     font-family:var(--font-mono);
-    font-size:2rem;
+    font-size:clamp(1.3rem, 4vw, 2rem);
     font-weight:600;
     letter-spacing:.02em;
     font-variant-numeric:tabular-nums;
+  }
+  .topbar-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .status-pill{
     font-family:var(--font-ui);
@@ -109,6 +134,8 @@
     border-radius:6px;
     padding:6px 10px;
     cursor:pointer;
+    touch-action:manipulation;
+    min-height:32px;
   }
   .reset-btn:hover{ color:var(--text); border-color:var(--text-dim); }
 
@@ -117,6 +144,7 @@
     display:grid;
     grid-template-columns:340px 1fr;
     min-height:0;
+    overflow:hidden;
   }
 
   /* ---------- sidebar / flagpole rail ---------- */
@@ -125,6 +153,7 @@
     grid-template-columns:34px 1fr;
     border-right:1px solid var(--border);
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
     padding:20px 0 20px 14px;
     background:var(--bg-elev);
   }
@@ -182,6 +211,8 @@
     color:var(--text);
     font-family:inherit;
     width:100%;
+    min-height:44px;
+    touch-action:manipulation;
   }
   .segment:hover{ background:var(--bg-elev-2); }
   .segment .num{
@@ -224,6 +255,7 @@
     flex-direction:column;
     padding:36px 44px;
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
     min-height:0;
   }
   .stage .eyebrow{
@@ -236,7 +268,7 @@
   }
   .stage h2{
     font-family:var(--font-display);
-    font-size:clamp(1.9rem, 4vw, 3.2rem);
+    font-size:clamp(1.6rem, 4vw, 3.2rem);
     line-height:1.12;
     margin:0 0 14px;
     font-weight:700;
@@ -271,7 +303,7 @@
   }
   .timer-block .big-timer{
     font-family:var(--font-mono);
-    font-size:clamp(2.4rem, 6vw, 4.4rem);
+    font-size:clamp(2rem, 6vw, 4.4rem);
     font-weight:600;
     font-variant-numeric:tabular-nums;
     color:var(--gold);
@@ -319,6 +351,8 @@
     display:inline-flex;
     align-items:center;
     gap:8px;
+    touch-action:manipulation;
+    min-height:44px;
   }
   .play-btn:hover{ filter:brightness(1.08); }
   .play-btn::before{ content:"▶"; font-size:.75rem; }
@@ -331,6 +365,7 @@
     text-decoration:underline;
     cursor:pointer;
     padding:0;
+    touch-action:manipulation;
   }
   .pick-link:hover{ color:var(--text); }
 
@@ -350,6 +385,8 @@
     background:var(--bg-elev);
     color:var(--text);
     cursor:pointer;
+    touch-action:manipulation;
+    min-height:44px;
   }
   .nav-btn:hover:not(:disabled){ border-color:var(--text-dim); }
   .nav-btn:disabled{ opacity:.35; cursor:default; }
@@ -366,12 +403,117 @@
     margin-left:6px;
   }
 
+  /* ---------- track / audio / playlist blocks ---------- */
+  .audio-block{
+    background:var(--bg-elev);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    margin-bottom:28px;
+  }
+  .audio-block .audio-title{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-dim);
+    margin-bottom:12px;
+  }
+  .track-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .track-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid transparent;
+    background:var(--bg-elev-2);
+    transition:border-color .15s;
+  }
+  .track-row.playing{
+    border-color:var(--gold-glow);
+    box-shadow:0 0 0 1px var(--gold-glow);
+  }
+  .track-num{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    color:var(--text-dim);
+    min-width:1.4rem;
+  }
+  .track-row.playing .track-num{ color:var(--gold); }
+  .track-label{
+    flex:1;
+    font-size:.9rem;
+    font-weight:600;
+  }
+  .track-btn{
+    font-family:var(--font-ui);
+    font-size:.8rem;
+    font-weight:700;
+    color:#161006;
+    background:linear-gradient(180deg, #E7BB3A, var(--gold));
+    border:none;
+    border-radius:6px;
+    padding:7px 14px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    touch-action:manipulation;
+    min-height:44px;
+  }
+  .track-btn:hover{ filter:brightness(1.08); }
+  .track-btn::before{ content:"▶"; font-size:.65rem; }
+  .track-btn.pause-btn::before{ content:"⏸"; }
+
+  /* ---------- inline video preview ---------- */
+  .inline-preview{
+    width:100%;
+    max-width:720px;
+    border-radius:8px;
+    display:block;
+    background:#000;
+    margin-top:12px;
+  }
+
   #filePicker{ display:none; }
 
+  /* ---------- responsive: tablet / small desktop ---------- */
   @media (max-width:820px){
-    .main{ grid-template-columns:1fr; grid-template-rows:auto 1fr; }
-    .sidebar{ border-right:none; border-bottom:1px solid var(--border); max-height:38vh; }
-    .stage{ padding:24px; }
+    .main{ grid-template-columns:1fr; grid-template-rows:auto 1fr; overflow:hidden; }
+    .sidebar{
+      border-right:none;
+      border-bottom:1px solid var(--border);
+      max-height:34dvh;
+      max-height:34vh;
+    }
+    .stage{ padding:20px 20px 0; }
+    .controls{
+      position:sticky;
+      bottom:0;
+      background:var(--bg);
+      border-top:1px solid var(--border);
+      padding:12px 0 max(16px, env(safe-area-inset-bottom));
+      margin-top:auto;
+      gap:8px;
+    }
+    .nav-btn{ flex:1; }
+    .hint{ display:none; }
+    .topbar{ padding:10px 16px; }
+  }
+
+  /* ---------- responsive: small phones ---------- */
+  @media (max-width:480px){
+    .sidebar{ grid-template-columns:1fr; }
+    .rail{ display:none; }
+    .segments{ padding-right:8px; }
+    .stage .meta-row{ gap:14px; }
+    .inline-preview{ max-width:100%; }
+    .track-row{ padding:8px 10px; }
+    .status-pill{ display:none; }
   }
 </style>
 </head>
@@ -387,8 +529,9 @@
       </div>
     </div>
     <div class="clock" id="clock">--:--:--</div>
-    <div style="display:flex; align-items:center; gap:12px;">
+    <div class="topbar-right">
       <div class="status-pill" id="statusPill">—</div>
+      <button class="reset-btn" id="themeBtn" title="Ganti tema gelap/terang">☾</button>
       <button class="reset-btn" id="resetBtn" title="Reset seluruh progres">Reset</button>
     </div>
   </header>
@@ -409,31 +552,40 @@
   </div>
 </div>
 
-<input type="file" id="filePicker" accept="video/*">
+<input type="file" id="filePicker" accept="video/*,audio/*">
 <video id="stageVideo" style="display:none;"></video>
+<audio id="stageAudio"></audio>
 
 <script>
 (function(){
   "use strict";
 
-  var VIDEO_TARI = "videos/Tari Nusantara - Wonderland Indonesia 2  by Alffy Rev [WP_h6l99xHo].webm";
+  var VIDEO_TARI = "assets/Tari Nusantara - Wonderland Indonesia 2  by Alffy Rev [WP_h6l99xHo].webm";
   var VIDEO_LABEL = "Tari Nusantara — Wonderland Indonesia 2 (Alffy Rev)";
 
   var RUNDOWN = [
     { start:"19.00", end:"19.05", title:"Pembukaan oleh MC", pic:"" },
     { start:"19.05", end:"19.10", title:"Pembacaan Sari Tilawah", pic:"Haydar & Mahirah" },
-    { start:"19.10", end:"19.20", title:"Indonesia Raya + Mengheningkan Cipta", pic:"Dirijen Tante Galuh, Paduan Suara PKK & Warga" },
+    { start:"19.10", end:"19.20", title:"Indonesia Raya, Mengheningkan Cipta & Hari Merdeka", pic:"Dirijen Tante Galuh, Paduan Suara PKK & Warga", videos:[
+      { src:"assets/indonesia-raya.mp4",      label:"Indonesia Raya" },
+      { src:"assets/mengheningkan-cipta.mp4", label:"Mengheningkan Cipta" },
+      { src:"assets/hari-merdeka.mp4",        label:"Hari Merdeka" }
+    ]},
     { start:"19.20", end:"19.30", title:"Sambutan", pic:"P. RT & P. Bayu" },
     { start:"19.30", end:"19.45", title:"Doa, Refleksi Sejarah & Pemotongan Tumpeng", pic:"P. Alex & P. RT" },
-    { start:"19.45", end:"19.55", title:"Penampilan Tari — Grup Kecil", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL, videoNote:"(contoh — ganti bila ada video khusus)" },
-    { start:"19.55", end:"20.10", title:"Penampilan Tari — Cowok", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL, videoNote:"(contoh — ganti bila ada video khusus)" },
-    { start:"20.10", end:"20.30", title:"Tari Besar", pic:"Tante Galuh dkk", video:VIDEO_TARI, videoLabel:VIDEO_LABEL },
+    { start:"19.45", end:"19.55", title:"Penampilan Tari — Grup Kecil", pic:"Tante Galuh dkk", video:"assets/tari-semut-sekeding.mp4", videoLabel:"Tari Semut Sekeding", embed:true },
+    { start:"19.55", end:"20.10", title:"Penampilan Tari — Cowok", pic:"Tante Galuh dkk", video:"assets/tari-kicau-mania.mp4", videoLabel:"Tari Kicau Mania", embed:true, videoStart:10 },
+    { start:"20.10", end:"20.30", title:"Tari Besar", pic:"Tante Galuh dkk", video:"assets/tari-nusantara.mp4", videoLabel:"Tari Nusantara", embed:true },
     { start:"20.30", end:null, title:"Pengumuman Hadiah", pic:"" },
-    { start:"20.45", end:null, title:"Pensi", pic:"Tante Galuh" },
+    { start:"20.45", end:null, title:"Pensi", pic:"Tante Galuh", audio:[
+      { src:"assets/MUTIARA.mp3", label:"Mutiara" },
+      { src:"assets/JALARANING TRESNA.mp3", label:"Jalaraning Tresna" }
+    ]},
     { start:null, end:null, title:"Makan Bersama", pic:"Semua Warga" }
   ];
 
   var STORAGE_KEY = "rundown17an-state-v1";
+  var THEME_KEY   = "rundown17an-theme";
 
   function loadState(){
     try{
@@ -449,6 +601,18 @@
   var state = loadState();
   if(typeof state.activeIndex !== "number") state.activeIndex = 0;
   if(!state.actualStarts) state.actualStarts = {};
+
+  // ---------- theme ----------
+  var themeBtn = document.getElementById("themeBtn");
+  if(localStorage.getItem(THEME_KEY) === "light"){
+    document.body.classList.add("light");
+    themeBtn.textContent = "☀";
+  }
+  themeBtn.addEventListener("click", function(){
+    var isLight = document.body.classList.toggle("light");
+    themeBtn.textContent = isLight ? "☀" : "☾";
+    localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
+  });
 
   function timeStrToDate(str){
     if(!str) return null;
@@ -504,17 +668,24 @@
 
     var pct = RUNDOWN.length > 1 ? (state.activeIndex / (RUNDOWN.length-1)) : 0;
     pct = Math.max(0, Math.min(1, pct));
-    var railH = document.getElementById("rail").offsetHeight - 12;
+    var railEl = document.getElementById("rail");
+    var railH = railEl.offsetHeight - 12;
     railFill.style.height = (pct*railH) + "px";
     railFlag.style.bottom = (6 + pct*railH - 6) + "px";
+
+    // scroll active segment into view
+    var activeBtn = segmentsEl.querySelector(".segment.active");
+    if(activeBtn) activeBtn.scrollIntoView({ block:"nearest", behavior:"smooth" });
   }
 
   // ---------- render stage ----------
   var stageEl = document.getElementById("stage");
   var stageVideo = document.getElementById("stageVideo");
+  var stageAudio = document.getElementById("stageAudio");
   var filePicker = document.getElementById("filePicker");
   var overrideVideoUrl = null;
   var overrideForIndex = null;
+  var playingTrackIndex = null;
 
   function renderStage(){
     var i = state.activeIndex;
@@ -538,13 +709,55 @@
     html += '<div class="timer-label">berjalan sejak segmen ini dimulai</div>';
     html += '</div>';
 
+    // multi-video playlist (e.g. lagu upacara)
+    if(seg.videos){
+      html += '<div class="audio-block">';
+      html += '<div class="audio-title">Lagu</div>';
+      html += '<div class="track-list">';
+      seg.videos.forEach(function(track, ti){
+        html += '<div class="track-row" id="vt-row-'+ti+'">';
+        html += '<span class="track-num" id="vt-num-'+ti+'">'+pad(ti+1)+'</span>';
+        html += '<span class="track-label">'+track.label+'</span>';
+        html += '<button class="track-btn" id="vt-btn-'+ti+'">Putar</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+      html += '<video id="songPlayer" class="inline-preview" controls preload="metadata" style="display:none;"></video>';
+      html += '</div>';
+    }
+
+    // single embedded video
     if(seg.video){
       html += '<div class="video-block">';
       html += '<div class="video-title">Video</div>';
       html += '<div class="video-name">'+(seg.videoLabel||seg.video)+(seg.videoNote ? ' <span style="color:var(--text-dim);">'+seg.videoNote+'</span>' : '')+'</div>';
-      html += '<div class="video-actions">';
-      html += '<button class="play-btn" id="playBtn">Putar Layar Penuh</button>';
-      html += '<button class="pick-link" id="pickBtn">Pilih video lain…</button>';
+      if(seg.embed){
+        var src = (overrideForIndex === i && overrideVideoUrl) ? overrideVideoUrl : seg.video;
+        if(seg.videoStart) src += '#t=' + seg.videoStart;
+        html += '<video class="inline-preview" controls preload="metadata" src="'+src+'"></video>';
+      } else {
+        html += '<div class="video-actions">';
+        html += '<button class="play-btn" id="playBtn">Putar Layar Penuh</button>';
+        html += '<button class="pick-link" id="pickBtn">Pilih video lain…</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // audio playlist (pensi)
+    if(seg.audio){
+      html += '<div class="audio-block">';
+      html += '<div class="audio-title">Musik Pensi</div>';
+      html += '<div class="track-list">';
+      seg.audio.forEach(function(track, ti){
+        var isPlaying = (playingTrackIndex === ti) && (i === state.activeIndex);
+        html += '<div class="track-row'+(isPlaying?' playing':'')+ '" id="track-row-'+ti+'">';
+        html += '<span class="track-num">'+(isPlaying ? '♪' : pad(ti+1))+'</span>';
+        html += '<span class="track-label">'+track.label+'</span>';
+        html += '<button class="track-btn'+(isPlaying?' pause-btn':'')+ '" id="track-btn-'+ti+'">'+
+                  (isPlaying ? 'Jeda' : 'Putar')+'</button>';
+        html += '</div>';
+      });
       html += '</div></div>';
     }
 
@@ -559,9 +772,53 @@
     document.getElementById("prevBtn").addEventListener("click", function(){ goTo(state.activeIndex-1); });
     document.getElementById("nextBtn").addEventListener("click", function(){ goTo(state.activeIndex+1); });
 
-    if(seg.video){
+    if(seg.video && !seg.embed){
       document.getElementById("playBtn").addEventListener("click", function(){ playVideo(seg, i); });
       document.getElementById("pickBtn").addEventListener("click", function(){ filePicker.click(); });
+    }
+
+    if(seg.audio){
+      seg.audio.forEach(function(track, ti){
+        document.getElementById("track-btn-"+ti).addEventListener("click", function(){ playAudio(track, ti, i); });
+      });
+    }
+
+    if(seg.videos){
+      var songPlayer = document.getElementById("songPlayer");
+      var currentSongIdx = null;
+
+      function updateSongUI(){
+        seg.videos.forEach(function(_, ti){
+          var row = document.getElementById("vt-row-"+ti);
+          var num = document.getElementById("vt-num-"+ti);
+          var btn = document.getElementById("vt-btn-"+ti);
+          if(!row) return;
+          var isActive = currentSongIdx === ti;
+          var isPlaying = isActive && !songPlayer.paused;
+          row.classList.toggle("playing", isActive);
+          num.textContent = isActive ? "♪" : pad(ti+1);
+          btn.classList.toggle("pause-btn", isPlaying);
+          btn.textContent = isPlaying ? "Jeda" : (isActive ? "Lanjut" : "Putar");
+        });
+      }
+
+      seg.videos.forEach(function(track, ti){
+        document.getElementById("vt-btn-"+ti).addEventListener("click", function(){
+          if(currentSongIdx === ti){
+            if(songPlayer.paused){ songPlayer.play().catch(function(){}); }
+            else { songPlayer.pause(); }
+          } else {
+            currentSongIdx = ti;
+            songPlayer.src = track.src;
+            songPlayer.style.display = "block";
+            songPlayer.play().catch(function(){});
+          }
+          updateSongUI();
+        });
+      });
+
+      songPlayer.addEventListener("pause", updateSongUI);
+      songPlayer.addEventListener("play", updateSongUI);
     }
   }
 
@@ -576,6 +833,31 @@
       stageVideo.requestFullscreen().catch(function(){});
     }
     stageVideo.play().catch(function(){});
+  }
+
+  function playAudio(track, ti, segIndex){
+    var isAlreadyPlaying = (playingTrackIndex === ti) && !stageAudio.paused;
+    stageAudio.pause();
+    if(isAlreadyPlaying){
+      playingTrackIndex = null;
+      renderStage();
+      return;
+    }
+    playingTrackIndex = ti;
+    stageAudio.src = track.src;
+    stageAudio.play().catch(function(){});
+    renderStage();
+
+    stageAudio.onended = function(){
+      var seg = RUNDOWN[segIndex];
+      var next = ti + 1;
+      if(seg.audio && next < seg.audio.length){
+        playAudio(seg.audio[next], next, segIndex);
+      } else {
+        playingTrackIndex = null;
+        renderStage();
+      }
+    };
   }
 
   filePicker.addEventListener("change", function(e){
@@ -598,6 +880,8 @@
   // ---------- navigation ----------
   function goTo(i){
     if(i < 0 || i >= RUNDOWN.length) return;
+    stageAudio.pause();
+    playingTrackIndex = null;
     state.activeIndex = i;
     if(!state.actualStarts[i]){
       state.actualStarts[i] = new Date().toISOString();
@@ -663,7 +947,6 @@
     }
   }
 
-  // ensure first segment has a start stamp so timer works immediately
   if(!state.actualStarts[state.activeIndex]){
     state.actualStarts[state.activeIndex] = new Date().toISOString();
     saveState();
