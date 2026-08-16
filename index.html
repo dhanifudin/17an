@@ -669,6 +669,10 @@
 
   var RUNDOWN = [
     { start:null, end:"19.00", title:"Menunggu Acara Dimulai", pic:"" },
+    { start:null, end:"19.00", title:"Pre-Acara", pic:"", audio:[
+      { src:"assets/yang-penting-happy.mp3", label:"Yang Penting Happy" },
+      { src:"assets/boleh-saja.mp3", label:"Boleh Saja" }
+    ]},
     { start:"19.00", end:"19.05", title:"Pembukaan oleh MC", pic:"" },
     { start:"19.05", end:"19.10", title:"Pembacaan Sari Tilawah", pic:"Haydar & Mahirah" },
     { start:"19.10", end:"19.20", title:"Indonesia Raya & Hari Merdeka", pic:"Dirijen Tante Galuh & Warga", videos:[
@@ -741,7 +745,7 @@
   });
 
   // ---------- OST / background music ----------
-  var OST_WAIT  = "assets/ost-waiting.mp3";       // waiting — Yang Penting Happy → Boleh Saja
+  var OST_WAIT  = "assets/ost-medley.mp3";        // waiting — vocal medley
   var OST_TRANS = "assets/ost-instrumental.mp3"; // transitions — instrumental only
 
   function ostSrc(){
