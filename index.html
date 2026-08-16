@@ -55,7 +55,7 @@
 
   .app{
     display:grid;
-    grid-template-rows:auto 1fr;
+    grid-template-rows:auto auto 1fr;
     height:100vh;
     height:100dvh;
   }
@@ -144,6 +144,65 @@
     border-color:var(--gold);
     background:var(--gold-glow);
   }
+
+  /* ---------- soundboard strip ---------- */
+  .sfxbar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 20px;
+    border-bottom:1px solid var(--border);
+    background:var(--bg-elev);
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .sfxbar::-webkit-scrollbar{ display:none; }
+  .sfxbar-label{
+    font-size:.65rem;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--text-dim);
+    white-space:nowrap;
+    margin-right:4px;
+    flex-shrink:0;
+  }
+  .sfx-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family:var(--font-ui);
+    font-size:.75rem;
+    font-weight:600;
+    color:var(--text-dim);
+    background:var(--bg-elev-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:5px 10px;
+    cursor:pointer;
+    white-space:nowrap;
+    min-height:32px;
+    touch-action:manipulation;
+    flex-shrink:0;
+    transition:border-color .12s, color .12s;
+  }
+  .sfx-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+  .sfx-btn.playing{
+    color:var(--gold);
+    border-color:var(--gold);
+    background:var(--gold-glow);
+  }
+  .sfx-key{
+    font-family:var(--font-mono);
+    font-size:.65rem;
+    color:var(--gold);
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:1px 4px;
+    line-height:1.2;
+  }
+  .sfx-btn.playing .sfx-key{ background:var(--gold-glow); }
 
   /* ---------- layout ---------- */
   .main{
@@ -549,6 +608,8 @@
     </div>
   </header>
 
+  <div class="sfxbar" id="sfxbar"><!-- populated by JS --></div>
+
   <div class="main">
     <nav class="sidebar" aria-label="Daftar susunan acara">
       <div class="rail" id="rail">
@@ -569,6 +630,7 @@
 <video id="stageVideo" style="display:none;"></video>
 <audio id="stageAudio"></audio>
 <audio id="bgAudio" loop></audio>
+<audio id="sfxAudio"></audio>
 
 <script>
 (function(){
@@ -781,6 +843,61 @@
   var filePicker = document.getElementById("filePicker");
 
   stageAudio.addEventListener("play", duckOst);
+
+  // ---------- soundboard ----------
+  var SFX = [
+    { key:"1", label:"Tepuk Tangan", src:"assets/sfx/applause.mp3" },
+    { key:"2", label:"Sorak",        src:"assets/sfx/cheer.mp3" },
+    { key:"3", label:"Drum Roll",    src:"assets/sfx/drumroll.mp3" },
+    { key:"4", label:"Tada!",        src:"assets/sfx/tada.mp3" },
+    { key:"5", label:"Airhorn",      src:"assets/sfx/airhorn.mp3" },
+    { key:"6", label:"Tawa",         src:"assets/sfx/laugh.mp3" },
+    { key:"7", label:"Jangkrik",     src:"assets/sfx/crickets.mp3" },
+    { key:"8", label:"Sad Trombon",  src:"assets/sfx/sad-trombone.mp3" },
+    { key:"9", label:"Ding",         src:"assets/sfx/ding.mp3" },
+    { key:"0", label:"Buzzer",       src:"assets/sfx/buzzer.mp3" }
+  ];
+
+  var sfxAudio = document.getElementById("sfxAudio");
+  var sfxBarEl = document.getElementById("sfxbar");
+  var activeSfxIdx = null;
+
+  function updateSfxUI(){
+    SFX.forEach(function(_, idx){
+      var btn = document.getElementById("sfx-btn-"+idx);
+      if(btn) btn.classList.toggle("playing", idx === activeSfxIdx && !sfxAudio.paused);
+    });
+  }
+
+  function playSfx(idx){
+    if(activeSfxIdx === idx && !sfxAudio.paused){
+      sfxAudio.pause();
+      sfxAudio.currentTime = 0;
+      activeSfxIdx = null;
+    } else {
+      activeSfxIdx = idx;
+      sfxAudio.src = SFX[idx].src;
+      sfxAudio.currentTime = 0;
+      sfxAudio.play().catch(function(){});
+    }
+    updateSfxUI();
+  }
+
+  sfxAudio.addEventListener("ended", function(){ activeSfxIdx = null; updateSfxUI(); });
+  sfxAudio.addEventListener("pause", updateSfxUI);
+
+  function renderSfxBar(){
+    var html = '<span class="sfxbar-label">Efek</span>';
+    SFX.forEach(function(sfx, idx){
+      html += '<button class="sfx-btn" id="sfx-btn-'+idx+'" title="Tombol '+sfx.key+'">';
+      html += '<span class="sfx-key">'+sfx.key+'</span> '+sfx.label;
+      html += '</button>';
+    });
+    sfxBarEl.innerHTML = html;
+    SFX.forEach(function(_, idx){
+      document.getElementById("sfx-btn-"+idx).addEventListener("click", function(){ playSfx(idx); });
+    });
+  }
   var overrideVideoUrl = null;
   var overrideForIndex = null;
   var playingTrackIndex = null;
@@ -878,7 +995,7 @@
     html += '<div class="controls">';
     html += '<button class="nav-btn" id="prevBtn" '+(i===0?'disabled':'')+'>← Sebelumnya</button>';
     html += '<button class="nav-btn primary" id="nextBtn" '+(isLast?'disabled':'')+'>Berikutnya →</button>';
-    html += '<span class="hint">Spasi / Panah = navigasi · Enter = OST</span>';
+    html += '<span class="hint">Spasi / Panah = navigasi · Enter = OST · 1–0 = efek suara</span>';
     html += '</div>';
 
     stageEl.innerHTML = html;
@@ -1036,6 +1153,15 @@
       if(e.target.tagName === "BUTTON") return;
       e.preventDefault();
       ostBtn.click();
+    } else {
+      var sfxKeys = {"Digit1":0,"Digit2":1,"Digit3":2,"Digit4":3,"Digit5":4,
+                     "Digit6":5,"Digit7":6,"Digit8":7,"Digit9":8,"Digit0":9,
+                     "Numpad1":0,"Numpad2":1,"Numpad3":2,"Numpad4":3,"Numpad5":4,
+                     "Numpad6":5,"Numpad7":6,"Numpad8":7,"Numpad9":8,"Numpad0":9};
+      if(sfxKeys[e.code] !== undefined && e.target.tagName !== "INPUT"){
+        e.preventDefault();
+        playSfx(sfxKeys[e.code]);
+      }
     }
   });
 
@@ -1080,6 +1206,7 @@
     saveState();
   }
 
+  renderSfxBar();
   renderSidebar();
   renderStage();
   tick();
