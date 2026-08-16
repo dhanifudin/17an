@@ -1040,7 +1040,7 @@
     html += '<div class="controls">';
     html += '<button class="nav-btn" id="prevBtn" '+(i===0?'disabled':'')+'>← Sebelumnya</button>';
     html += '<button class="nav-btn primary" id="nextBtn" '+(isLast?'disabled':'')+'>Berikutnya →</button>';
-    html += '<span class="hint">Spasi / Panah = navigasi · Enter = OST · −/+ = vol · &lt;/&gt; = seek · 1–0 = efek suara</span>';
+    html += '<span class="hint">Spasi / Panah = navigasi · '+(seg.video && seg.embed ? 'Enter = video' : 'Enter = OST')+' · −/+ = vol · &lt;/&gt; = seek · 1–0 = efek suara</span>';
     html += '</div>';
 
     stageEl.innerHTML = html;
@@ -1197,7 +1197,13 @@
     } else if(e.code === "Enter" || e.code === "NumpadEnter"){
       if(e.target.tagName === "BUTTON") return;
       e.preventDefault();
-      ostBtn.click();
+      var embedVideo = document.getElementById("embedVideo");
+      if(embedVideo){
+        if(embedVideo.paused) embedVideo.play().catch(function(){});
+        else embedVideo.pause();
+      } else {
+        ostBtn.click();
+      }
     } else if(e.code === "Minus" || e.code === "NumpadSubtract"){
       e.preventDefault();
       setOstVolume(-0.1);
