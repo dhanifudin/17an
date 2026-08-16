@@ -139,6 +139,12 @@
   }
   .reset-btn:hover{ color:var(--text); border-color:var(--text-dim); }
 
+  .ost-btn.on{
+    color:var(--gold);
+    border-color:var(--gold);
+    background:var(--gold-glow);
+  }
+
   /* ---------- layout ---------- */
   .main{
     display:grid;
@@ -531,6 +537,7 @@
     <div class="clock" id="clock">--:--:--</div>
     <div class="topbar-right">
       <div class="status-pill" id="statusPill">—</div>
+      <button class="reset-btn ost-btn" id="ostBtn" title="Musik latar (OST)">♫ OST</button>
       <button class="reset-btn" id="themeBtn" title="Ganti tema gelap/terang">☾</button>
       <button class="reset-btn" id="resetBtn" title="Reset seluruh progres">Reset</button>
     </div>
@@ -555,6 +562,7 @@
 <input type="file" id="filePicker" accept="video/*,audio/*">
 <video id="stageVideo" style="display:none;"></video>
 <audio id="stageAudio"></audio>
+<audio id="bgAudio" loop src="assets/ost-medley.mp3"></audio>
 
 <script>
 (function(){
@@ -613,6 +621,59 @@
     var isLight = document.body.classList.toggle("light");
     themeBtn.textContent = isLight ? "☀" : "☾";
     localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
+  });
+
+  // ---------- OST / background music ----------
+  var bgAudio = document.getElementById("bgAudio");
+  var ostBtn  = document.getElementById("ostBtn");
+  var ostEnabled = false;
+  var _fadeTimer = null;
+
+  function fadeTo(audio, target, ms){
+    if(_fadeTimer) clearInterval(_fadeTimer);
+    var step = (target - audio.volume) / (ms / 40);
+    _fadeTimer = setInterval(function(){
+      var next = audio.volume + step;
+      if((step > 0 && next >= target) || (step < 0 && next <= target)){
+        audio.volume = Math.max(0, Math.min(1, target));
+        if(target === 0){ audio.pause(); }
+        clearInterval(_fadeTimer);
+        _fadeTimer = null;
+      } else {
+        audio.volume = Math.max(0, Math.min(1, next));
+      }
+    }, 40);
+  }
+
+  function duckOst(){
+    if(!ostEnabled || bgAudio.paused) return;
+    fadeTo(bgAudio, 0, 600);
+  }
+
+  function resumeOstIfEnabled(){
+    if(!ostEnabled) return;
+    var fgActive = !stageAudio.paused;
+    if(!fgActive){
+      var vids = document.querySelectorAll("video");
+      for(var vi = 0; vi < vids.length; vi++){
+        if(!vids[vi].paused){ fgActive = true; break; }
+      }
+    }
+    if(!fgActive){
+      bgAudio.volume = 0;
+      bgAudio.play().catch(function(){});
+      fadeTo(bgAudio, 1, 800);
+    }
+  }
+
+  ostBtn.addEventListener("click", function(){
+    ostEnabled = !ostEnabled;
+    if(ostEnabled){
+      resumeOstIfEnabled();
+    } else {
+      fadeTo(bgAudio, 0, 600);
+    }
+    ostBtn.classList.toggle("on", ostEnabled);
   });
 
   function timeStrToDate(str){
@@ -684,6 +745,8 @@
   var stageVideo = document.getElementById("stageVideo");
   var stageAudio = document.getElementById("stageAudio");
   var filePicker = document.getElementById("filePicker");
+
+  stageAudio.addEventListener("play", duckOst);
   var overrideVideoUrl = null;
   var overrideForIndex = null;
   var playingTrackIndex = null;
@@ -770,6 +833,9 @@
 
     stageEl.innerHTML = html;
 
+    // duck OST whenever any inline video starts playing
+    stageEl.querySelectorAll("video").forEach(function(v){ v.addEventListener("play", duckOst); });
+
     document.getElementById("prevBtn").addEventListener("click", function(){ goTo(state.activeIndex-1); });
     document.getElementById("nextBtn").addEventListener("click", function(){ goTo(state.activeIndex+1); });
 
@@ -824,6 +890,7 @@
   }
 
   function playVideo(seg, i){
+    duckOst();
     var src = (overrideForIndex === i && overrideVideoUrl) ? overrideVideoUrl : seg.video;
     if(stageVideo.getAttribute("data-src") !== src){
       stageVideo.src = src;
@@ -883,6 +950,7 @@
     if(i < 0 || i >= RUNDOWN.length) return;
     stageAudio.pause();
     playingTrackIndex = null;
+    resumeOstIfEnabled();
     state.activeIndex = i;
     if(!state.actualStarts[i]){
       state.actualStarts[i] = new Date().toISOString();
