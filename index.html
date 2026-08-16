@@ -663,14 +663,13 @@
   var RUNDOWN = [
     { start:"19.00", end:"19.05", title:"Pembukaan oleh MC", pic:"" },
     { start:"19.05", end:"19.10", title:"Pembacaan Sari Tilawah", pic:"Haydar & Mahirah" },
-    { start:"19.10", end:"19.20", title:"Indonesia Raya & Hari Merdeka", pic:"Dirijen Tante Galuh, Paduan Suara PKK & Warga", videos:[
+    { start:"19.10", end:"19.20", title:"Indonesia Raya & Hari Merdeka", pic:"Dirijen Tante Galuh & Warga", videos:[
       { src:"assets/indonesia-raya.mp4", label:"Indonesia Raya" },
       { src:"assets/hari-merdeka.mp4",   label:"Hari Merdeka", end:128 }
     ]},
     { start:"19.20", end:"19.30", title:"Sambutan", pic:"P. RT" },
-    { start:"19.30", end:"19.35", title:"Doa", pic:"Ustadz Habib" },
-    { start:"19.35", end:"19.40", title:"Refleksi Sejarah", pic:"P. Alex", video:"assets/mengheningkan-cipta.mp4", videoLabel:"Mengheningkan Cipta (OST)", embed:true, videoLoop:true, videoVolume:0.5 },
-    { start:"19.40", end:"19.45", title:"Pemotongan Tumpeng", pic:"P. RT" },
+    { start:"19.30", end:"19.35", title:"Refleksi Sejarah", pic:"P. Alex", video:"assets/mengheningkan-cipta.mp4", videoLabel:"Mengheningkan Cipta (OST)", embed:true, videoLoop:true, videoVolume:0.5 },
+    { start:"19.35", end:"19.45", title:"Doa & Pemotongan Tumpeng", pic:"Ustadz Habib & P. RT", noOst:true },
     { start:"19.45", end:"19.55", title:"Penampilan Tari — Grup Kecil", pic:"Tante Galuh dkk", video:"assets/tari-semut-sekeding.mp4", videoLabel:"Tari Semut Sekeding", embed:true },
     { start:"19.55", end:"20.10", title:"Penampilan Tari — Cowok", pic:"Tante Galuh dkk", video:"assets/tari-kicau-mania.mp4", videoLabel:"Tari Kicau Mania", embed:true, videoStart:10 },
     { start:"20.10", end:"20.30", title:"Tari Besar", pic:"Tante Galuh dkk", video:"assets/tari-nusantara.mp4", videoLabel:"Tari Nusantara", embed:true },
@@ -791,6 +790,8 @@
 
   function resumeOstIfEnabled(){
     if(!ostEnabled) return;
+    var seg = RUNDOWN[state.activeIndex];
+    if(seg && seg.noOst){ if(!bgAudio.paused) fadeTo(bgAudio, 0, 600); return; }
     var fgActive = !stageAudio.paused;
     if(!fgActive){
       var vids = document.querySelectorAll("video");
