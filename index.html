@@ -959,7 +959,7 @@
     if(i < 0 || i >= RUNDOWN.length) return;
     stageAudio.pause();
     playingTrackIndex = null;
-    resumeOstIfEnabled();
+    stageEl.querySelectorAll("video").forEach(function(v){ v.pause(); });
     state.activeIndex = i;
     if(!state.actualStarts[i]){
       state.actualStarts[i] = new Date().toISOString();
@@ -967,6 +967,7 @@
     saveState();
     renderSidebar();
     renderStage();
+    resumeOstIfEnabled();
   }
 
   document.getElementById("resetBtn").addEventListener("click", function(){
