@@ -702,6 +702,10 @@
     { start:"20.45", end:null, title:"Pensi", pic:"Tante Galuh", audio:[
       { src:"assets/MUTIARA.mp3", label:"Mutiara" },
       { src:"assets/JALARANING TRESNA.mp3", label:"Jalaraning Tresna" }
+    ], videoTitle:"Video Karaoke", videos:[
+      { src:"assets/karaoke-edan-turun.mp4", label:"Edan Turun (Demy)" },
+      { src:"assets/karaoke-jangan-tunggu-lama-lama.mp4", label:"Jangan Tunggu Lama Lama (Cici Faramida)" },
+      { src:"assets/jula-juli-kidungan.mp4", label:"Jula-Juli Kidungan Jawa Timur" }
     ]},
     { start:null, end:null, title:"Penutup", pic:"Semua Warga", ost:"assets/ost-kemesraan.mp3" }
   ];
@@ -985,7 +989,7 @@
     // multi-video playlist (e.g. lagu upacara)
     if(seg.videos){
       html += '<div class="audio-block">';
-      html += '<div class="audio-title">Lagu</div>';
+      html += '<div class="audio-title">'+(seg.videoTitle||"Lagu")+'</div>';
       html += '<div class="track-list">';
       seg.videos.forEach(function(track, ti){
         html += '<div class="track-row" id="vt-row-'+ti+'">';
