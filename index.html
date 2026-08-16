@@ -562,7 +562,7 @@
 <input type="file" id="filePicker" accept="video/*,audio/*">
 <video id="stageVideo" style="display:none;"></video>
 <audio id="stageAudio"></audio>
-<audio id="bgAudio" loop src="assets/ost-medley.mp3"></audio>
+<audio id="bgAudio" loop></audio>
 
 <script>
 (function(){
@@ -624,6 +624,13 @@
   });
 
   // ---------- OST / background music ----------
+  var OST_WAIT  = "assets/ost-medley.mp3";       // waiting — vocal medley
+  var OST_TRANS = "assets/ost-instrumental.mp3"; // transitions — instrumental only
+
+  function ostSrc(){
+    return state.activeIndex === 0 ? OST_WAIT : OST_TRANS;
+  }
+
   var bgAudio = document.getElementById("bgAudio");
   var ostBtn  = document.getElementById("ostBtn");
   var ostEnabled = false;
@@ -660,6 +667,8 @@
       }
     }
     if(!fgActive){
+      var src = ostSrc();
+      if(bgAudio.getAttribute("src") !== src){ bgAudio.src = src; }
       bgAudio.volume = 0;
       bgAudio.play().catch(function(){});
       fadeTo(bgAudio, 1, 800);
