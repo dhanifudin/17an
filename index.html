@@ -475,6 +475,12 @@
   .track-btn::before{ content:"▶"; font-size:.65rem; }
   .track-btn.pause-btn::before{ content:"⏸"; }
 
+  /* ---------- winner lists (Pengumuman Hadiah) ---------- */
+  .winner-block{ padding:18px 22px; margin-bottom:16px; }
+  .winner-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; }
+  .winner-tier{ font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--gold); font-weight:700; margin-bottom:6px; }
+  .winner-name{ font-size:.92rem; padding:3px 0; }
+
   /* ---------- inline video preview ---------- */
   .inline-preview{
     width:100%;
@@ -585,7 +591,24 @@
     { start:"19.45", end:"19.55", title:"Penampilan Tari — Grup Kecil", pic:"Tante Galuh dkk", video:"assets/tari-semut-sekeding.mp4", videoLabel:"Tari Semut Sekeding", embed:true },
     { start:"19.55", end:"20.10", title:"Penampilan Tari — Cowok", pic:"Tante Galuh dkk", video:"assets/tari-kicau-mania.mp4", videoLabel:"Tari Kicau Mania", embed:true, videoStart:10 },
     { start:"20.10", end:"20.30", title:"Tari Besar", pic:"Tante Galuh dkk", video:"assets/tari-nusantara.mp4", videoLabel:"Tari Nusantara", embed:true },
-    { start:"20.30", end:null, title:"Pengumuman Hadiah", pic:"" },
+    { start:"20.30", end:null, title:"Pengumuman Hadiah", pic:"", winners:[
+      { title:"Lomba Mewarnai", groups:[
+        { tier:"PAUD / TK", names:["Aisyah Binti Muharya (C1)","Muhammad Malik Al-Faqih (D12)","Ghaitsaa Freya Qirani Megantara (B6)"] },
+        { tier:"SD 1–6",    names:["A Mecca Az Zahra (D12)","Clarissa A.R (F3)","Denaya Syaqila A (A10)"] }
+      ]},
+      { title:"Lomba Krupuk", groups:[
+        { tier:"PAUD / TK", names:["Juara 1: Faki","Juara 2: Frea","Juara 3: Eza"] },
+        { tier:"SD",        names:["Juara 1: Abi","Juara 2: Hafsa","Juara 3: Rafa"] }
+      ]},
+      { title:"Lomba Pindah Bendera", groups:[
+        { tier:"PAUD / TK", names:["Juara 1: Faki","Juara 2: Eza","Juara 3: Azki"] },
+        { tier:"SD",        names:["Juara 1: Haidar","Juara 2: Naya","Juara 3: Gazel"] }
+      ]},
+      { title:"Lomba Ketangkasan", groups:[
+        { tier:"PAUD / TK", names:["Juara 1: Nadim","Juara 2: Azki","Juara 3: Hafiz"] },
+        { tier:"SD",        names:["Juara 1: Inas","Juara 2: Haidar","Juara 3: Amina"] }
+      ]}
+    ]},
     { start:"20.45", end:null, title:"Pensi", pic:"Tante Galuh", audio:[
       { src:"assets/MUTIARA.mp3", label:"Mutiara" },
       { src:"assets/JALARANING TRESNA.mp3", label:"Jalaraning Tresna" }
@@ -832,6 +855,22 @@
         html += '</div>';
       });
       html += '</div></div>';
+    }
+
+    // winner lists (Pengumuman Hadiah)
+    if(seg.winners){
+      seg.winners.forEach(function(cat){
+        html += '<div class="audio-block winner-block">';
+        html += '<div class="audio-title">'+cat.title+'</div>';
+        html += '<div class="winner-grid">';
+        cat.groups.forEach(function(g){
+          html += '<div class="winner-group">';
+          html += '<div class="winner-tier">'+g.tier+'</div>';
+          g.names.forEach(function(n){ html += '<div class="winner-name">'+n+'</div>'; });
+          html += '</div>';
+        });
+        html += '</div></div>';
+      });
     }
 
     html += '<div class="controls">';
