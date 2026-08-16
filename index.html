@@ -876,7 +876,7 @@
     html += '<div class="controls">';
     html += '<button class="nav-btn" id="prevBtn" '+(i===0?'disabled':'')+'>← Sebelumnya</button>';
     html += '<button class="nav-btn primary" id="nextBtn" '+(isLast?'disabled':'')+'>Berikutnya →</button>';
-    html += '<span class="hint">Spasi / Panah = navigasi</span>';
+    html += '<span class="hint">Spasi / Panah = navigasi · Enter = OST</span>';
     html += '</div>';
 
     stageEl.innerHTML = html;
@@ -1030,6 +1030,10 @@
     } else if(e.code === "ArrowLeft"){
       e.preventDefault();
       goTo(state.activeIndex-1);
+    } else if(e.code === "Enter" || e.code === "NumpadEnter"){
+      if(e.target.tagName === "BUTTON") return;
+      e.preventDefault();
+      ostBtn.click();
     }
   });
 
